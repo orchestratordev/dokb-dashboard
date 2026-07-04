@@ -150,7 +150,7 @@ export default function Home() {
   function handleNote(val: string) {
     setNote(val)
     setNoteSaved(false)
-    clearTimeout(saveTimer.current)
+    if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => {
       localStorage.setItem(NOTE_KEY, val)
       setNoteSaved(true)
