@@ -118,7 +118,7 @@ export default function Home() {
   const [noteSaved, setNoteSaved] = useState(false)
   const [toast,     setToast]     = useState('')
   const [filterP,   setFilterP]   = useState('all')
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>()
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const NOTE_KEY = 'dokb_note_v2'
 
