@@ -658,13 +658,15 @@ export default function Home() {
             { id: 'laporan',     icon: '🚨', label: 'Laporan' },
             { id: 'organisasi',  icon: '🏢', label: 'Organisasi' },
             { id: 'profil',      icon: '👤', label: 'Profil' },
+            { id: 'chat', icon: '🤖', label: 'Claudia' },
           ].map(nav => (
             <button key={nav.id}
               onClick={() => {
-                setActiveNav(nav.id)
-                if (nav.id !== 'beranda') showToast(`${nav.label} — segera hadir`)
-                else window.scrollTo({ top: 0, behavior: 'smooth' })
-              }}
+  setActiveNav(nav.id)
+  if (nav.id === 'chat') window.location.href = '/chat'
+  else if (nav.id !== 'beranda') showToast(`${nav.label} — segera hadir`)
+  else window.scrollTo({ top: 0, behavior: 'smooth' })
+}}
               style={{
                 flex: 1, textAlign: 'center', padding: '6px 4px',
                 borderRadius: 10, background: 'none', border: 'none',
