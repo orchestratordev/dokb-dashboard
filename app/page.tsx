@@ -27,12 +27,13 @@ const KOTA = [
 ]
 const JENIS_KENDARAAN = ['Mobil', 'Motor']
 
-type DokumenKey = 'ktp' | 'sim' | 'stnk' | 'kendaraan_depan' | 'kendaraan_belakang' | 'kendaraan_samping' | 'buku_servis'
+type DokumenKey = 'ktp' | 'sim' | 'stnk' | 'skpd' | 'kendaraan_depan' | 'kendaraan_belakang' | 'kendaraan_samping' | 'buku_servis'
 
 const DOKUMEN_LIST: { key: DokumenKey; label: string; hint: string }[] = [
   { key: 'ktp', label: 'Foto KTP', hint: 'Pastikan seluruh data terbaca jelas' },
   { key: 'sim', label: 'Foto SIM', hint: 'SIM sesuai jenis kendaraan' },
   { key: 'stnk', label: 'Foto STNK', hint: 'Halaman depan STNK' },
+  { key: 'skpd', label: 'Foto SKPD (Pajak Kendaraan)', hint: 'Bukti pajak kendaraan masih berlaku' },
   { key: 'kendaraan_depan', label: 'Foto Kendaraan — Tampak Depan', hint: 'Plat nomor harus terlihat jelas' },
   { key: 'kendaraan_belakang', label: 'Foto Kendaraan — Tampak Belakang', hint: 'Plat nomor harus terlihat jelas' },
   { key: 'kendaraan_samping', label: 'Foto Kendaraan — Tampak Samping', hint: 'Seluruh badan kendaraan terlihat' },
@@ -179,14 +180,16 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
     no_pol: '',
     no_rangka: '',
     no_mesin: '',
+    warna_kendaraan: '',
     masa_berlaku_stnk: '',
+    masa_berlaku_skpd: '',
     platform: [] as string[],
     lama_bergabung: '',
     status_keanggotaan: '' as '' | 'anggota' | 'non_anggota',
     no_kta: ''
   })
   const [dokumen, setDokumen] = useState<Record<DokumenKey, File | null>>({
-    ktp: null, sim: null, stnk: null,
+    ktp: null, sim: null, stnk: null, skpd: null,
     kendaraan_depan: null, kendaraan_belakang: null, kendaraan_samping: null,
     buku_servis: null
   })
@@ -222,7 +225,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
       return
     }
     if (!dokumenLengkap) {
-      setError('Seluruh 7 dokumen wajib diupload!')
+      setError('Seluruh dokumen wajib diupload!')
       return
     }
     if (!setuju) {
@@ -382,6 +385,11 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
               className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
               style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
             />
+            <input type="text" placeholder="Warna Kendaraan"
+              value={form.warna_kendaraan} onChange={e => setForm({ ...form, warna_kendaraan: e.target.value })}
+              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
+              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+            />
             <input type="text" placeholder="No. Polisi (Plat Nomor) *"
               value={form.no_pol} onChange={e => setForm({ ...form, no_pol: e.target.value.toUpperCase() })}
               className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none uppercase"
@@ -399,13 +407,23 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
                 style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
               />
             </div>
-            <div>
-              <label className="text-xs text-gray-400 mb-1 block">Masa Berlaku STNK</label>
-              <input type="date"
-                value={form.masa_berlaku_stnk} onChange={e => setForm({ ...form, masa_berlaku_stnk: e.target.value })}
-                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Masa Berlaku STNK</label>
+                <input type="date"
+                  value={form.masa_berlaku_stnk} onChange={e => setForm({ ...form, masa_berlaku_stnk: e.target.value })}
+                  className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
+                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Masa Berlaku SKPD</label>
+                <input type="date"
+                  value={form.masa_berlaku_skpd} onChange={e => setForm({ ...form, masa_berlaku_skpd: e.target.value })}
+                  className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
+                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -463,7 +481,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             <Images size={16} weight="fill" color="#dc2626" />
             <p className="text-sm font-bold text-gray-700">Dokumen Wajib</p>
           </div>
-          <p className="text-xs text-gray-400 mb-3">Seluruh 7 dokumen di bawah ini wajib diupload</p>
+          <p className="text-xs text-gray-400 mb-3">Seluruh dokumen di bawah ini wajib diupload</p>
           <div className="space-y-3">
             {DOKUMEN_LIST.map(d => (
               <div key={d.key}>
@@ -502,8 +520,9 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
               className="mt-0.5 w-4 h-4 flex-shrink-0"
             />
             <p className="text-xs text-gray-500 leading-relaxed">
-              Saya menyetujui data dan dokumen yang saya lampirkan digunakan untuk keperluan pengawasan
-              Angkutan Sewa Khusus dalam kolaborasi DOKB dan Dinas Perhubungan Provinsi Kalimantan Selatan.
+              Saya menyetujui penggunaan data dan dokumen yang saya sampaikan melalui formulir ini untuk
+              keperluan pendataan, verifikasi, dan pengurusan Kartu Pengawasan Angkutan Sewa Khusus (ASK)
+              melalui fasilitasi DOKB sesuai ketentuan yang berlaku.
             </p>
           </label>
         </div>
