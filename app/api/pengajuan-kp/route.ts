@@ -12,7 +12,8 @@ export async function POST(req: NextRequest) {
 
     const {
       nama, nik, tempat_lahir, tanggal_lahir, alamat, lokasi, no_hp, email,
-      jenis_kendaraan, merk_type, no_pol, no_rangka, no_mesin, masa_berlaku_stnk,
+      jenis_kendaraan, merk_type, no_pol, no_rangka, no_mesin,
+      warna_kendaraan, masa_berlaku_stnk, masa_berlaku_skpd,
       platform, lama_bergabung, status_keanggotaan, no_kta,
       dokumen
     } = body
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     const dokumenWajib = [
-      'ktp', 'sim', 'stnk',
+      'ktp', 'sim', 'stnk', 'skpd',
       'kendaraan_depan', 'kendaraan_belakang', 'kendaraan_samping',
       'buku_servis'
     ]
@@ -75,7 +76,9 @@ export async function POST(req: NextRequest) {
         no_pol,
         no_rangka: no_rangka || null,
         no_mesin: no_mesin || null,
+        warna_kendaraan: warna_kendaraan || null,
         masa_berlaku_stnk: masa_berlaku_stnk || null,
+        masa_berlaku_skpd: masa_berlaku_skpd || null,
         platform,
         lama_bergabung: lama_bergabung || null,
         status_keanggotaan: status_keanggotaan || null,
@@ -83,6 +86,7 @@ export async function POST(req: NextRequest) {
         dok_ktp: dokumen.ktp,
         dok_sim: dokumen.sim,
         dok_stnk: dokumen.stnk,
+        dok_skpd: dokumen.skpd,
         dok_kendaraan_depan: dokumen.kendaraan_depan,
         dok_kendaraan_belakang: dokumen.kendaraan_belakang,
         dok_kendaraan_samping: dokumen.kendaraan_samping,
@@ -108,5 +112,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     )
   }
-        }
-    
+}
