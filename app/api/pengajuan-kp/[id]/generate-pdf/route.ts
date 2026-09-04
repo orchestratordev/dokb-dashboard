@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import fs from 'fs/promises'
+import path from 'path'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,13 +31,18 @@ async function embedImageFromUrl(pdfDoc: PDFDocument, url: string) {
     }
     return await pdfDoc.embedJpg(bytes)
   } catch {
-    // fallback: coba format satunya kalau deteksi awal salah
     try {
       return await pdfDoc.embedPng(bytes)
     } catch {
       return await pdfDoc.embedJpg(bytes)
     }
   }
+}
+
+async function embedLogoDokb(pdfDoc: PDFDocument) {
+  const logoPath = path.join(process.cwd(), 'public', 'logo-dokb.png')
+  const bytes = await fs.readFile(logoPath)
+  return await pdfDoc.embedPng(bytes)
 }
 
 async function buatHalamanFoto(pdfDoc: PDFDocument, urls: string[]) {
@@ -79,6 +86,31 @@ async function buatHalamanPerjanjian(pdfDoc: PDFDocument, data: any) {
   const lineHeight = 14
   const bodySize = 9.5
 
+  // ── Kop Surat (logo DOKB) ──
+  try {
+    const logo = await embedLogoDokb(pdfDoc)
+    const maxLogoW = PAGE_W - marginX * 2
+    const maxLogoH = 70
+    const scale = Math.min(maxLogoW / logo.width, maxLogoH / logo.height)
+    const w = logo.width * scale
+    const h = logo.height * scale
+    const x = (PAGE_W - w) / 2
+    y -= h
+    page.drawImage(logo, { x, y, width: w, height: h })
+    y -= 10
+    // Garis pemisah di bawah kop surat
+    page.drawLine({
+      start: { x: marginX, y },
+      end: { x: PAGE_W - marginX, y },
+      thickness: 1,
+      color: rgb(0.7, 0.7, 0.7)
+    })
+    y -= 20
+  } catch (err) {
+    console.error('Gagal memuat logo DOKB:', err)
+    // Tetap lanjut tanpa kop surat kalau logo gagal dimuat
+  }
+
   const drawText = (text: string, opts: { size?: number; bold?: boolean; center?: boolean } = {}) => {
     const size = opts.size || bodySize
     const usedFont = opts.bold ? fontBold : font
@@ -114,7 +146,7 @@ async function buatHalamanPerjanjian(pdfDoc: PDFDocument, data: any) {
   for (const line of wrapText(pembuka, PAGE_W - marginX * 2, bodySize)) drawText(line)
   y -= 6
 
-  drawText('DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu, dalam hal ini diwakili oleh:', { bold: false })
+  drawText('DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu, dalam hal ini diwakili oleh:')
   y -= 4
   drawText(`Nama        : ${KETUA_DOKB_NAMA}`)
   drawText(`NIK           : ${KETUA_DOKB_NIK}`)
@@ -151,8 +183,7 @@ async function buatHalamanPerjanjian(pdfDoc: PDFDocument, data: any) {
     const wrapped = wrapText(`${i + 1}. ${p}`, PAGE_W - marginX * 2, bodySize)
     wrapped.forEach((line, idx) => {
       const x = marginX + (idx > 0 ? 14 : 0)
-      const usedFont = font
-      page.drawText(line, { x, y, size: bodySize, font: usedFont, color: rgb(0.1, 0.1, 0.1) })
+      page.drawText(line, { x, y, size: bodySize, font, color: rgb(0.1, 0.1, 0.1) })
       y -= lineHeight
     })
     y -= 2
@@ -208,7 +239,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       data.dok_buku_servis
     ])
 
-    // Halaman 3: Surat Perjanjian Kerjasama
+    // Halaman 3: Surat Perjanjian Kerjasama (dengan kop surat DOKB)
     await buatHalamanPerjanjian(pdfDoc, data)
 
     const pdfBytes = await pdfDoc.save()
@@ -239,5 +270,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     console.error('Generate PDF error:', err)
     return NextResponse.json({ success: false, message: 'Terjadi kesalahan saat membuat PDF.' }, { status: 500 })
   }
-  }
+    }
       
