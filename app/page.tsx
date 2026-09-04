@@ -152,7 +152,21 @@ function LandingPage({ onStart }: { onStart: () => void }) {
         >
           Mulai Pengajuan <ArrowRight size={20} weight="bold" />
         </button>
-
+<button onClick={() => window.location.href = '/admin'}
+          className="w-full bg-white rounded-2xl p-4 text-left transition-all active:scale-[0.98] border-2 border-transparent mt-3"
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-700">
+              <ShieldCheck size={20} color="white" weight="fill" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-gray-800 text-sm">Tim Pengawas ASK</p>
+              <p className="text-xs text-gray-400">Login khusus Dishub, Polda, Komdigi, YLKI, dan DOKB</p>
+            </div>
+            <ArrowRight size={16} color="#4b5563" weight="bold" />
+          </div>
+        </button>
         <div className="mt-6 text-center space-y-1">
           <p className="text-xs font-bold text-gray-500">Dikelola oleh:</p>
           <p className="text-xs text-gray-600 font-semibold">Tim Pengawas ASK Provinsi Kalimantan Selatan</p>
