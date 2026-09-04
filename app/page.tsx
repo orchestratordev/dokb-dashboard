@@ -143,7 +143,7 @@ function LandingPage({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        <button onClick={onStart}
+        <button onClick={() => window.location.href = '/panduan-foto'}
           className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2"
           style={{
             background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
