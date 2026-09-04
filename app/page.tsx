@@ -135,8 +135,8 @@ function LandingPage({ onStart }: { onStart: () => void }) {
           <p className="text-sm font-bold text-gray-700 mb-2">Dokumen yang perlu disiapkan:</p>
           <div className="grid grid-cols-2 gap-1.5">
             {DOKUMEN_LIST.map(d => (
-              <div key={d.key} className="flex items-center gap-1.5">
-                <CheckCircle size={12} color="#dc2626" weight="fill" />
+              <div key={d.key} className="flex items-start gap-1.5">
+                <CheckCircle size={12} color="#dc2626" weight="fill" className="flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-gray-500">{d.label}</p>
               </div>
             ))}
