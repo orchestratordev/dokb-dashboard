@@ -40,7 +40,7 @@ async function embedImageFromUrl(pdfDoc: PDFDocument, url: string) {
 }
 
 async function embedLogoDokb(pdfDoc: PDFDocument) {
-  const logoPath = path.join(process.cwd(), 'public', 'logo-dokb.png')
+  const logoPath = path.join(process.cwd(), 'public', 'logo-dokb-bulat.png')
   const bytes = await fs.readFile(logoPath)
   return await pdfDoc.embedPng(bytes)
 }
