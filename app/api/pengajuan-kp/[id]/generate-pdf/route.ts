@@ -174,9 +174,9 @@ async function buatHalamanPerjanjian(pdfDoc: PDFDocument, data: any) {
   return page
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const { data, error } = await supabase
       .from('pengajuan_kp')
