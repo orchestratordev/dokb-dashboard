@@ -17,7 +17,8 @@ import {
   Buildings,
   ArrowRight,
   User,
-  BookOpen
+  BookOpen,
+  PencilSimple
 } from '@phosphor-icons/react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -183,6 +184,16 @@ function LandingPage() {
   )
 }
 
+// ─── Ringkasan Field kecil (dipakai di halaman Cek Ulang) ──────────────────
+function RingkasanField({ label, value }: { label: string; value: string | number | null | undefined }) {
+  return (
+    <div className="flex justify-between py-1.5 border-b border-gray-50 last:border-0">
+      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs font-semibold text-gray-700 text-right max-w-[60%]">{value || '—'}</p>
+    </div>
+  )
+}
+
 // ─── Pengajuan Form ─────────────────────────────────────────────────────────
 function PengajuanForm({ onBack }: { onBack: () => void }) {
   const [form, setForm] = useState({
@@ -216,6 +227,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(false)
   const [sukses, setSukses] = useState(false)
   const [error, setError] = useState('')
+  const [tahapReview, setTahapReview] = useState(false)
 
   const togglePlatform = (p: string) => {
     setForm(prev => ({
@@ -230,28 +242,38 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
 
   const dokumenLengkap = DOKUMEN_LIST.every(d => dokumen[d.key] !== null)
 
-  const handleSubmit = async () => {
+  const validasiForm = () => {
     if (!form.nama || !form.nik || !form.alamat || !form.lokasi || !form.no_hp) {
       setError('Data pribadi wajib dilengkapi: nama, NIK, alamat, kota, dan nomor HP!')
-      return
+      return false
     }
     if (!form.jenis_kendaraan || !form.merk_type || !form.no_pol) {
       setError('Data kendaraan wajib dilengkapi: jenis, merk/type, dan plat nomor!')
-      return
+      return false
     }
     if (form.platform.length === 0) {
       setError('Pilih minimal satu aplikator yang digunakan!')
-      return
+      return false
     }
     if (!dokumenLengkap) {
       setError('Seluruh dokumen wajib diupload!')
-      return
+      return false
     }
     if (!setuju) {
       setError('Anda harus menyetujui pernyataan penggunaan data terlebih dahulu!')
-      return
+      return false
     }
+    return true
+  }
 
+  const handleTinjau = () => {
+    setError('')
+    if (!validasiForm()) return
+    setTahapReview(true)
+    window.scrollTo(0, 0)
+  }
+
+  const handleSubmit = async () => {
     setLoading(true)
     setError('')
 
@@ -287,15 +309,132 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
         setSukses(true)
       } else {
         setError(result.message)
+        setTahapReview(false)
       }
     } catch {
       setError('Gagal mengirim pengajuan, coba lagi!')
+      setTahapReview(false)
     } finally {
       setLoading(false)
     }
   }
 
   if (sukses) return <SuksesPage onBack={onBack} />
+
+  // ── Halaman Cek Ulang ──
+  if (tahapReview) {
+    return (
+      <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
+        <div className="relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #f97316 100%)', paddingBottom: 32 }}
+        >
+          <div className="relative p-6 pt-8 max-w-md mx-auto">
+            <button onClick={() => setTahapReview(false)} className="flex items-center gap-2 text-white/80 mb-4 text-sm font-semibold">
+              <ArrowLeft size={16} weight="bold" /> Kembali Edit
+            </button>
+            <h1 className="text-lg font-extrabold text-white" style={{ fontFamily: 'var(--font-plus-jakarta)' }}>
+              Cek Ulang Pengajuan
+            </h1>
+            <p className="text-red-100 text-xs mt-1">Periksa kembali sebelum mengirim</p>
+          </div>
+        </div>
+
+        <div className="max-w-md mx-auto p-4 -mt-4 relative z-10 space-y-4 pb-6">
+
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-gray-700">Data Pribadi</p>
+              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
+                <PencilSimple size={12} weight="bold" /> Ubah
+              </button>
+            </div>
+            <RingkasanField label="Nama" value={form.nama} />
+            <RingkasanField label="NIK" value={form.nik} />
+            <RingkasanField label="Tempat/Tgl Lahir" value={form.tempat_lahir ? `${form.tempat_lahir}, ${form.tanggal_lahir || '—'}` : null} />
+            <RingkasanField label="Alamat" value={form.alamat} />
+            <RingkasanField label="Kota/Kabupaten" value={form.lokasi} />
+            <RingkasanField label="No. HP" value={form.no_hp} />
+            <RingkasanField label="Email" value={form.email} />
+          </div>
+
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-gray-700">Data Kendaraan</p>
+              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
+                <PencilSimple size={12} weight="bold" /> Ubah
+              </button>
+            </div>
+            <RingkasanField label="Jenis" value={form.jenis_kendaraan} />
+            <RingkasanField label="Merk/Type" value={form.merk_type} />
+            <RingkasanField label="Warna" value={form.warna_kendaraan} />
+            <RingkasanField label="No. Polisi" value={form.no_pol} />
+            <RingkasanField label="No. Rangka" value={form.no_rangka} />
+            <RingkasanField label="No. Mesin" value={form.no_mesin} />
+            <RingkasanField label="Masa Berlaku STNK" value={form.masa_berlaku_stnk} />
+            <RingkasanField label="Masa Berlaku SKPD" value={form.masa_berlaku_skpd} />
+          </div>
+
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-gray-700">Data Platform</p>
+              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
+                <PencilSimple size={12} weight="bold" /> Ubah
+              </button>
+            </div>
+            <RingkasanField label="Aplikator" value={form.platform.join(', ')} />
+            <RingkasanField label="Lama Bergabung" value={form.lama_bergabung} />
+            <RingkasanField label="Status Keanggotaan" value={form.status_keanggotaan === 'anggota' ? 'Anggota DOKB' : 'Non-Anggota'} />
+            {form.status_keanggotaan === 'anggota' && <RingkasanField label="No. KTA" value={form.no_kta} />}
+          </div>
+
+          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold text-gray-700">Dokumen</p>
+              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
+                <PencilSimple size={12} weight="bold" /> Ubah
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {DOKUMEN_LIST.map(d => {
+                const file = dokumen[d.key]
+                return (
+                  <div key={d.key} className="rounded-xl overflow-hidden border border-gray-100">
+                    {file ? (
+                      <img src={URL.createObjectURL(file)} alt={d.label} className="w-full h-20 object-cover" />
+                    ) : (
+                      <div className="w-full h-20 bg-gray-50 flex items-center justify-center">
+                        <Warning size={18} color="#dc2626" />
+                      </div>
+                    )}
+                    <p className="text-[9px] text-gray-400 text-center py-1 px-1 truncate">{d.label}</p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {error && (
+            <div className="rounded-2xl p-4 flex items-center gap-3"
+              style={{ background: 'linear-gradient(135deg, #fef2f2, #fff7ed)' }}
+            >
+              <Warning size={20} color="#dc2626" weight="fill" />
+              <p className="text-red-600 text-sm font-semibold">{error}</p>
+            </div>
+          )}
+
+          <button onClick={handleSubmit} disabled={loading}
+            className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{
+              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
+              boxShadow: loading ? 'none' : '0 6px 20px rgba(220,38,38,0.5)'
+            }}
+          >
+            {loading ? '⏳ Mengirim...' : <><PaperPlaneTilt size={20} weight="fill" /> KIRIM SEKARANG</>}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
@@ -321,9 +460,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       </div>
-
       <div className="max-w-md mx-auto p-4 -mt-4 relative z-10 space-y-4">
-
         {/* ── Data Pribadi ── */}
         <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
           <div className="flex items-center gap-2 mb-3">
@@ -385,7 +522,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             />
           </div>
         </div>
-
         {/* ── Data Kendaraan ── */}
         <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
           <div className="flex items-center gap-2 mb-3">
@@ -558,14 +694,14 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             <p className="text-red-600 text-sm font-semibold">{error}</p>
           </div>
         )}
-        <button onClick={handleSubmit} disabled={loading}
-          className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2 disabled:opacity-50"
+        <button onClick={handleTinjau}
+          className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2"
           style={{
-            background: loading ? '#9ca3af' : 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
-            boxShadow: loading ? 'none' : '0 6px 20px rgba(220,38,38,0.5)'
+            background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
+            boxShadow: '0 6px 20px rgba(220,38,38,0.5)'
           }}
         >
-          {loading ? '⏳ Mengirim...' : <><PaperPlaneTilt size={20} weight="fill" /> KIRIM PENGAJUAN</>}
+          Tinjau Pengajuan <ArrowRight size={20} weight="bold" />
         </button>
         <p className="text-center text-[10px] text-gray-300 pb-4">
           DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu
@@ -607,10 +743,12 @@ function SuksesPage({ onBack }: { onBack: () => void }) {
     </div>
   )
 }
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true)
   const [view, setView] = useState<'landing' | 'form'>('landing')
+
   useEffect(() => {
     if (sessionStorage.getItem('buka_form_langsung') === '1') {
       sessionStorage.removeItem('buka_form_langsung')
@@ -618,7 +756,8 @@ export default function Home() {
       setView('form')
     }
   }, [])
+
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
   if (view === 'form') return <PengajuanForm onBack={() => setView('landing')} />
   return <LandingPage />
-        }
+}
