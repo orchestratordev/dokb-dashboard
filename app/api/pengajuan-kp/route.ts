@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       jenis_kendaraan, merk_type, no_pol, no_rangka, no_mesin,
       warna_kendaraan, masa_berlaku_stnk, masa_berlaku_skpd,
       platform, lama_bergabung, status_keanggotaan, no_kta,
-      dokumen
+      dokumen, checklist_keselamatan
     } = body
 
     // ── Validasi field wajib ──
@@ -47,6 +47,13 @@ export async function POST(req: NextRequest) {
     if (dokumenKurang.length > 0) {
       return NextResponse.json(
         { success: false, message: `Dokumen belum lengkap: ${dokumenKurang.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    if (!checklist_keselamatan || !checklist_keselamatan.pernyataan_akhir) {
+      return NextResponse.json(
+        { success: false, message: 'Checklist SPM Keselamatan belum dilengkapi.' },
         { status: 400 }
       )
     }
@@ -91,6 +98,7 @@ export async function POST(req: NextRequest) {
         dok_kendaraan_belakang: dokumen.kendaraan_belakang,
         dok_kendaraan_samping: dokumen.kendaraan_samping,
         dok_buku_servis: dokumen.buku_servis,
+        checklist_keselamatan,
         status: 'pending'
       })
       .select('id')
