@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   IdentificationCard,
   Car,
@@ -85,7 +86,9 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
 }
 
 // ─── Landing Page ─────────────────────────────────────────────────────────────
-function LandingPage({ onStart }: { onStart: () => void }) {
+function LandingPage() {
+  const router = useRouter()
+
   return (
     <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
       <div className="relative overflow-hidden" style={{
@@ -143,7 +146,7 @@ function LandingPage({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        <button onClick={() => window.location.href = '/panduan-foto'}
+        <button onClick={() => router.push('/checklist-keselamatan')}
           className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2"
           style={{
             background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
@@ -152,7 +155,8 @@ function LandingPage({ onStart }: { onStart: () => void }) {
         >
           Mulai Pengajuan <ArrowRight size={20} weight="bold" />
         </button>
-<button onClick={() => window.location.href = '/admin'}
+
+        <button onClick={() => router.push('/admin')}
           className="w-full bg-white rounded-2xl p-4 text-left transition-all active:scale-[0.98] border-2 border-transparent mt-3"
           style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
         >
@@ -167,6 +171,7 @@ function LandingPage({ onStart }: { onStart: () => void }) {
             <ArrowRight size={16} color="#4b5563" weight="bold" />
           </div>
         </button>
+
         <div className="mt-6 text-center space-y-1">
           <p className="text-xs font-bold text-gray-500">Dikelola oleh:</p>
           <p className="text-xs text-gray-600 font-semibold">Tim Pengawas ASK Provinsi Kalimantan Selatan</p>
@@ -263,18 +268,26 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
         if (result.url) dokumenUrls[d.key] = result.url
       }
 
+      const checklistRaw = sessionStorage.getItem('checklist_keselamatan')
+      const checklist_keselamatan = checklistRaw ? JSON.parse(checklistRaw) : null
+
       const res = await fetch('/api/pengajuan-kp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
-          dokumen: dokumenUrls
+          dokumen: dokumenUrls,
+          checklist_keselamatan
         })
       })
 
       const result = await res.json()
-      if (result.success) setSukses(true)
-      else setError(result.message)
+      if (result.success) {
+        sessionStorage.removeItem('checklist_keselamatan')
+        setSukses(true)
+      } else {
+        setError(result.message)
+      }
     } catch {
       setError('Gagal mengirim pengajuan, coba lagi!')
     } finally {
@@ -441,7 +454,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             </div>
           </div>
         </div>
-
         {/* ── Data Platform ── */}
         <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
           <div className="flex items-center gap-2 mb-3">
@@ -488,7 +500,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             />
           )}
         </div>
-
         {/* ── Upload Dokumen ── */}
         <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
           <div className="flex items-center gap-2 mb-1">
@@ -526,7 +537,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             ))}
           </div>
         </div>
-
         {/* ── Pernyataan ── */}
         <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
           <label className="flex items-start gap-3 cursor-pointer">
@@ -540,7 +550,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             </p>
           </label>
         </div>
-
         {error && (
           <div className="rounded-2xl p-4 flex items-center gap-3"
             style={{ background: 'linear-gradient(135deg, #fef2f2, #fff7ed)' }}
@@ -549,7 +558,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
             <p className="text-red-600 text-sm font-semibold">{error}</p>
           </div>
         )}
-
         <button onClick={handleSubmit} disabled={loading}
           className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2 disabled:opacity-50"
           style={{
@@ -559,7 +567,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
         >
           {loading ? '⏳ Mengirim...' : <><PaperPlaneTilt size={20} weight="fill" /> KIRIM PENGAJUAN</>}
         </button>
-
         <p className="text-center text-[10px] text-gray-300 pb-4">
           DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu
         </p>
@@ -567,7 +574,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
     </div>
   )
 }
-
 // ─── Sukses Page ────────────────────────────────────────────────────────────
 function SuksesPage({ onBack }: { onBack: () => void }) {
   return (
@@ -601,13 +607,18 @@ function SuksesPage({ onBack }: { onBack: () => void }) {
     </div>
   )
 }
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true)
   const [view, setView] = useState<'landing' | 'form'>('landing')
-
+  useEffect(() => {
+    if (sessionStorage.getItem('buka_form_langsung') === '1') {
+      sessionStorage.removeItem('buka_form_langsung')
+      setShowSplash(false)
+      setView('form')
+    }
+  }, [])
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
   if (view === 'form') return <PengajuanForm onBack={() => setView('landing')} />
-  return <LandingPage onStart={() => setView('form')} />
-}
+  return <LandingPage />
+        }
