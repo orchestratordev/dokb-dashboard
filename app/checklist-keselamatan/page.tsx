@@ -21,7 +21,7 @@ const KENDARAAN = [
   { id: 'k11', text: 'Kendaraan memiliki 1 APAR kapasitas 1 kg yang tersedia dan dapat digunakan.' },
   { id: 'k12', text: 'Sabuk keselamatan tersedia pada tempat duduk dan dapat digunakan.' },
   { id: 'k13', text: 'Kendaraan memiliki bukti kepesertaan/pembayaran asuransi kecelakaan sesuai ketentuan.' },
-  { id: 'k14', text: 'Usia kendaraan memenuhi ketentuan, yaitu maksimal 5 tahun.' },
+  { id: 'k14', text: 'Saya telah mengetahui ketentuan usia kendaraan dalam SPM ASK dan memahami bahwa usia kendaraan saya akan menjadi bagian dari proses pendataan dan verifikasi.' },
 ]
 
 const SEMUA_POIN = [...PENGEMUDI, ...KENDARAAN]
