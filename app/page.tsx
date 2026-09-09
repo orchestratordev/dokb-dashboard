@@ -1,781 +1,680 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import {
   IdentificationCard,
+  CheckCircle,
+  ArrowRight,
+  ArrowLeft,
+  UploadSimple,
+  FileText,
   Car,
-  Motorcycle,
+  User,
   MapPin,
   Phone,
-  Images,
-  Warning,
-  CheckCircle,
-  PaperPlaneTilt,
-  ArrowLeft,
-  ShieldCheck,
-  Buildings,
-  ArrowRight,
-  User,
-  BookOpen,
-  PencilSimple
+  Envelope,
+  WarningCircle,
+  MagnifyingGlass,
+  PencilSimple,
 } from '@phosphor-icons/react'
 
-// ─── Constants ────────────────────────────────────────────────────────────────
 const PLATFORM = ['Grab', 'Gojek', 'Maxim', 'InDrive']
 const KOTA = [
-  'Banjarmasin', 'Banjarbaru', 'Martapura', 'Pelaihari',
-  'Kandangan', 'Barabai', 'Tanjung', 'Kotabaru', 'Batulicin', 'Lainnya'
+  'Banjarmasin',
+  'Banjarbaru',
+  'Kabupaten Banjar',
+  'Barito Kuala',
+  'Tapin',
+  'Hulu Sungai Selatan',
+  'Hulu Sungai Tengah',
+  'Hulu Sungai Utara',
+  'Balangan',
+  'Tabalong',
+  'Tanah Laut',
+  'Tanah Bumbu',
+  'Kotabaru',
 ]
-const JENIS_KENDARAAN = ['Mobil', 'Motor']
+const JENIS_KENDARAAN = ['Mobil']
 
-type DokumenKey = 'ktp' | 'sim' | 'stnk' | 'skpd' | 'kendaraan_depan' | 'kendaraan_belakang' | 'kendaraan_samping' | 'buku_servis'
+type DokumenKey =
+  | 'ktp'
+  | 'sim'
+  | 'stnk'
+  | 'skpd'
+  | 'kendaraan_depan'
+  | 'kendaraan_belakang'
+  | 'kendaraan_samping'
+  | 'buku_servis'
 
-const DOKUMEN_LIST: { key: DokumenKey; label: string; hint: string }[] = [
-  { key: 'ktp', label: 'Foto KTP', hint: 'Pastikan seluruh data terbaca jelas' },
-  { key: 'sim', label: 'Foto SIM', hint: 'SIM sesuai jenis kendaraan' },
-  { key: 'stnk', label: 'Foto STNK', hint: 'Halaman depan STNK' },
-  { key: 'skpd', label: 'Foto SKPD (Pajak Kendaraan)', hint: 'Bukti pajak kendaraan masih berlaku' },
-  { key: 'kendaraan_depan', label: 'Foto Kendaraan — Tampak Depan', hint: 'Plat nomor harus terlihat jelas' },
-  { key: 'kendaraan_belakang', label: 'Foto Kendaraan — Tampak Belakang', hint: 'Plat nomor harus terlihat jelas' },
-  { key: 'kendaraan_samping', label: 'Foto Kendaraan — Tampak Samping', hint: 'Seluruh badan kendaraan terlihat' },
-  { key: 'buku_servis', label: 'Foto Cover Buku Servis', hint: 'Halaman depan buku servis unit' },
+const DOKUMEN_LIST: { key: DokumenKey; label: string }[] = [
+  { key: 'ktp', label: 'Foto KTP' },
+  { key: 'sim', label: 'Foto SIM' },
+  { key: 'stnk', label: 'Foto STNK' },
+  { key: 'skpd', label: 'Foto SKPD (Pajak Kendaraan)' },
+  { key: 'kendaraan_depan', label: 'Foto Kendaraan — Tampak Depan' },
+  { key: 'kendaraan_belakang', label: 'Foto Kendaraan — Tampak Belakang' },
+  { key: 'kendaraan_samping', label: 'Foto Kendaraan — Tampak Samping' },
+  { key: 'buku_servis', label: 'Foto Cover Buku Servis' },
 ]
 
-// ─── Splash Screen ────────────────────────────────────────────────────────────
+type FormDataType = {
+  nama: string
+  nik: string
+  no_hp: string
+  email: string
+  alamat: string
+  kota: string
+  jenis_kendaraan: string
+  merk: string
+  tipe: string
+  tahun: string
+  nomor_polisi: string
+  platform: string
+  anggota_dokb: string
+  nomor_anggota: string
+  dokumen: Partial<Record<DokumenKey, File>>
+  persetujuan: boolean
+}
+
+const initialForm: FormDataType = {
+  nama: '',
+  nik: '',
+  no_hp: '',
+  email: '',
+  alamat: '',
+  kota: '',
+  jenis_kendaraan: 'Mobil',
+  merk: '',
+  tipe: '',
+  tahun: '',
+  nomor_polisi: '',
+  platform: '',
+  anggota_dokb: '',
+  nomor_anggota: '',
+  dokumen: {},
+  persetujuan: false,
+}
+
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const [progress, setProgress] = useState(0)
-  const [fadeOut, setFadeOut] = useState(false)
 
-  useState(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
+      setProgress((p) => {
+        const next = p + 4
+        if (next >= 100) {
           clearInterval(interval)
-          setFadeOut(true)
-          setTimeout(onDone, 500)
+          setTimeout(onDone, 350)
           return 100
         }
-        return prev + 2
+        return next
       })
-    }, 40)
+    }, 45)
+
     return () => clearInterval(interval)
-  })
+  }, [onDone])
 
   return (
-    <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
-      style={{ background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)' }}
-    >
-      <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6"
-        style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}
-      >
-        <IdentificationCard size={48} color="white" weight="fill" />
-      </div>
-      <div className="text-center px-6">
-        <h1 className="text-2xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta)' }}>
-          KARTU PENGAWASAN
-        </h1>
-        <p className="text-red-100 text-xs mt-1 font-medium">Angkutan Sewa Khusus — Kalimantan Selatan</p>
-      </div>
-      <div className="mt-10 w-44">
-        <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-white rounded-full transition-all duration-100" style={{ width: `${progress}%` }} />
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-red-600 via-red-500 to-orange-500 text-white">
+      <div className="w-full max-w-md px-8 text-center">
+        <div className="mx-auto mb-7 flex h-24 w-24 items-center justify-center rounded-[28px] bg-white/15 shadow-2xl backdrop-blur-sm">
+          <IdentificationCard size={54} weight="duotone" />
+        </div>
+        <div className="text-sm font-bold tracking-[0.28em]">KARTU PENGAWASAN</div>
+        <div className="mt-2 text-sm text-white/85">
+          Angkutan Sewa Khusus — Kalimantan Selatan
+        </div>
+        <div className="mx-auto mt-8 h-1.5 w-full overflow-hidden rounded-full bg-white/20">
+          <div
+            className="h-full rounded-full bg-white transition-all duration-75"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-// ─── Landing Page ─────────────────────────────────────────────────────────────
-function LandingPage() {
-  const router = useRouter()
-
+function LandingPage({ onStart }: { onStart: () => void }) {
   return (
-    <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
-      <div className="relative overflow-hidden" style={{
-        background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #f97316 100%)',
-        paddingBottom: 40
-      }}>
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
-        <div className="relative p-6 pt-10 text-center max-w-md mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
-            {['Dishub', 'Polda', 'Komdigi', 'YLKI', 'DOKB'].map(name => (
-              <div key={name} className="w-10 h-10 rounded-xl flex flex-col items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}
-              >
-                <Buildings size={14} color="white" weight="fill" />
-                <span style={{ fontSize: 6, color: 'rgba(255,255,255,0.8)', marginTop: 1, fontWeight: 700 }}>{name}</span>
-              </div>
-            ))}
-          </div>
-          <h1 className="text-xl font-extrabold text-white tracking-tight" style={{ fontFamily: 'var(--font-plus-jakarta)' }}>
-            KARTU PENGAWASAN
-          </h1>
-          <h2 className="text-sm font-bold text-white mt-0.5">ANGKUTAN SEWA KHUSUS</h2>
-          <p className="text-red-100 text-xs mt-2 leading-relaxed">
-            Pengajuan Kartu Pengawasan — Kolaborasi DOKB dan Dinas Perhubungan Provinsi Kalimantan Selatan
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto p-4 -mt-5 relative z-10">
-        <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}
-            >
-              <ShieldCheck size={16} color="white" weight="fill" />
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <IdentificationCard size={27} weight="duotone" />
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-700">Terbuka untuk Umum</p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                Pengajuan terbuka untuk anggota DOKB maupun driver non-anggota. Persiapan kepatuhan sesuai PM 118 Tahun 2018.
+              <div className="text-sm font-black tracking-wide text-slate-900">KP ASK</div>
+              <div className="text-xs text-slate-500">Kalimantan Selatan</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-5 py-8 md:py-12">
+        <section className="rounded-3xl bg-gradient-to-br from-red-600 to-orange-500 p-6 text-white shadow-xl md:p-10">
+          <div className="max-w-3xl">
+            <div className="mb-3 inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
+              ANGKUTAN SEWA KHUSUS • RODA 4
+            </div>
+            <h1 className="text-3xl font-black leading-tight md:text-5xl">
+              Kartu Pengawasan
+            </h1>
+            <p className="mt-3 text-base font-medium text-white/90 md:text-xl">
+              Layanan Pendampingan Pengajuan Kartu Pengawasan (KP) Angkutan Sewa Khusus
+            </p>
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-white/85 md:text-base">
+              DOKB membantu pengemudi Roda 4 menyiapkan data dan dokumen dalam proses
+              pengajuan KP ASK.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-5">
+          <div className="flex gap-3">
+            <IdentificationCard className="mt-0.5 shrink-0 text-red-600" size={25} weight="duotone" />
+            <div>
+              <h2 className="font-bold text-slate-900">Pendampingan Administrasi</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                DOKB berperan sebagai jembatan dan pendamping administrasi bagi pengemudi
+                dalam menyiapkan kelengkapan pengajuan KP ASK.
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <p className="text-sm font-bold text-gray-700 mb-2">Dokumen yang perlu disiapkan:</p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {DOKUMEN_LIST.map(d => (
-              <div key={d.key} className="flex items-start gap-1.5">
-                <CheckCircle size={12} color="#dc2626" weight="fill" className="flex-shrink-0 mt-0.5" />
-                <p className="text-[11px] text-gray-500">{d.label}</p>
+        <section className="mt-7">
+          <h2 className="text-xl font-black text-slate-900">Dokumen yang Perlu Disiapkan</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Siapkan seluruh dokumen berikut sesuai arahan dalam proses pengajuan KP ASK.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {DOKUMEN_LIST.map((doc, i) => (
+              <div key={doc.key} className="flex items-center gap-3 rounded-2xl border bg-white p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                  <span className="text-xs font-bold">{i + 1}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <FileText size={18} />
+                  {doc.label}
+                </div>
               </div>
             ))}
           </div>
+        </section>
+
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={onStart}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-4 font-bold text-white shadow-lg transition hover:bg-red-700"
+          >
+            Mulai Pengajuan
+            <ArrowRight size={20} weight="bold" />
+          </button>
+          <button
+            onClick={() => (window.location.href = '/review')}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border bg-white px-6 py-4 font-bold text-slate-700"
+          >
+            <MagnifyingGlass size={20} />
+            Cek &amp; Perbaiki Pengajuan
+          </button>
         </div>
 
-        <button onClick={() => router.push('/checklist-keselamatan')}
-          className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2"
-          style={{
-            background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
-            boxShadow: '0 6px 20px rgba(220,38,38,0.5)'
-          }}
-        >
-          Mulai Pengajuan <ArrowRight size={20} weight="bold" />
-        </button>
-
-        <button onClick={() => router.push('/admin')}
-          className="w-full bg-white rounded-2xl p-4 text-left transition-all active:scale-[0.98] border-2 border-transparent mt-3"
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-700">
-              <ShieldCheck size={20} color="white" weight="fill" />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-gray-800 text-sm">Tim Pengawas ASK</p>
-              <p className="text-xs text-gray-400">Login khusus Dishub, Polda, Komdigi, YLKI, dan DOKB</p>
-            </div>
-            <ArrowRight size={16} color="#4b5563" weight="bold" />
+        <footer className="mt-12 border-t pt-6 text-center">
+          <div className="text-sm font-bold text-slate-700">
+            Sistem Pendampingan Administrasi KP ASK
           </div>
-        </button>
+          <div className="mt-1 text-sm text-slate-500">
+            DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu
+          </div>
+          <p className="mx-auto mt-3 max-w-2xl text-xs leading-5 text-slate-400">
+            DOKB berperan sebagai jembatan dan pendamping administrasi pengajuan.
+            Proses penetapan dan penerbitan KP mengikuti kewenangan instansi yang berwenang.
+          </p>
+        </footer>
+      </main>
+    </div>
+  )
+}
 
-        <button onClick={() => router.push('/cek-pengajuan')}
-          className="w-full bg-white rounded-2xl p-4 text-left transition-all active:scale-[0.98] border-2 border-transparent mt-3"
-          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  icon,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  type?: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+        {icon}
+        {label}
+      </span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100"
+      />
+    </label>
+  )
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-semibold text-slate-700">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100"
+      >
+        <option value="">Pilih...</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
+
+function UploadBox({
+  label,
+  file,
+  onChange,
+}: {
+  label: string
+  file?: File
+  onChange: (file: File | undefined) => void
+}) {
+  return (
+    <label className="block cursor-pointer rounded-2xl border-2 border-dashed border-slate-200 bg-white p-4 transition hover:border-red-300 hover:bg-red-50/30">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+          {file ? <CheckCircle size={23} weight="fill" /> : <UploadSimple size={23} />}
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-bold text-slate-800">{label}</div>
+          <div className="truncate text-xs text-slate-500">
+            {file ? file.name : 'Pilih file untuk diunggah'}
+          </div>
+        </div>
+      </div>
+      <input
+        type="file"
+        accept="image/*,.pdf"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0])}
+      />
+    </label>
+  )
+}
+
+function FormPage({
+  form,
+  setForm,
+  onBack,
+  onReview,
+}: {
+  form: FormDataType
+  setForm: React.Dispatch<React.SetStateAction<FormDataType>>
+  onBack: () => void
+  onReview: () => void
+}) {
+  const update = (key: keyof FormDataType, value: string | boolean) =>
+    setForm((f) => ({ ...f, [key]: value }))
+
+  const setDoc = (key: DokumenKey, file: File | undefined) =>
+    setForm((f) => ({ ...f, dokumen: { ...f.dokumen, [key]: file } }))
+
+  const canReview =
+    form.nama &&
+    form.nik &&
+    form.no_hp &&
+    form.alamat &&
+    form.kota &&
+    form.jenis_kendaraan &&
+    form.merk &&
+    form.tipe &&
+    form.tahun &&
+    form.nomor_polisi &&
+    form.platform &&
+    form.anggota_dokb &&
+    Object.keys(form.dokumen).length === DOKUMEN_LIST.length &&
+    form.persetujuan
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4">
+          <button onClick={onBack} className="rounded-xl p-2 hover:bg-slate-100">
+            <ArrowLeft size={22} />
+          </button>
+          <div>
+            <div className="font-black text-slate-900">Pengajuan KP ASK</div>
+            <div className="text-xs text-slate-500">Pendampingan administrasi DOKB</div>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-5 py-8">
+        <div className="space-y-6">
+          <section className="rounded-3xl bg-white p-5 shadow-sm md:p-7">
+            <div className="mb-5 flex items-center gap-3">
+              <User className="text-red-600" size={26} weight="duotone" />
+              <h2 className="text-xl font-black">Data Pribadi</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Nama Lengkap" value={form.nama} onChange={(v) => update('nama', v)} icon={<User size={17} />} />
+              <Field label="NIK" value={form.nik} onChange={(v) => update('nik', v)} />
+              <Field label="Nomor HP" value={form.no_hp} onChange={(v) => update('no_hp', v)} type="tel" icon={<Phone size={17} />} />
+              <Field label="Email" value={form.email} onChange={(v) => update('email', v)} type="email" icon={<Envelope size={17} />} />
+              <div className="md:col-span-2">
+                <Field label="Alamat" value={form.alamat} onChange={(v) => update('alamat', v)} icon={<MapPin size={17} />} />
+              </div>
+              <SelectField label="Kabupaten/Kota" value={form.kota} onChange={(v) => update('kota', v)} options={KOTA} />
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-5 shadow-sm md:p-7">
+            <div className="mb-5 flex items-center gap-3">
+              <Car className="text-red-600" size={26} weight="duotone" />
+              <h2 className="text-xl font-black">Data Kendaraan</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <SelectField label="Jenis Kendaraan" value={form.jenis_kendaraan} onChange={(v) => update('jenis_kendaraan', v)} options={JENIS_KENDARAAN} />
+              <Field label="Merek" value={form.merk} onChange={(v) => update('merk', v)} placeholder="Contoh: Toyota" />
+              <Field label="Tipe" value={form.tipe} onChange={(v) => update('tipe', v)} placeholder="Contoh: Avanza" />
+              <Field label="Tahun" value={form.tahun} onChange={(v) => update('tahun', v)} type="number" placeholder="2020" />
+              <Field label="Nomor Polisi" value={form.nomor_polisi} onChange={(v) => update('nomor_polisi', v)} placeholder="DA 1234 XX" />
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-5 shadow-sm md:p-7">
+            <h2 className="text-xl font-black">Data Operasional</h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <SelectField label="Platform/Aplikator" value={form.platform} onChange={(v) => update('platform', v)} options={PLATFORM} />
+              <SelectField label="Status Keanggotaan DOKB" value={form.anggota_dokb} onChange={(v) => update('anggota_dokb', v)} options={['Anggota DOKB', 'Non-Anggota']} />
+              {form.anggota_dokb === 'Anggota DOKB' && (
+                <Field label="Nomor Anggota DOKB" value={form.nomor_anggota} onChange={(v) => update('nomor_anggota', v)} />
+              )}
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-5 shadow-sm md:p-7">
+            <div className="mb-2 flex items-center gap-3">
+              <UploadSimple className="text-red-600" size={26} weight="duotone" />
+              <h2 className="text-xl font-black">Dokumen Pengajuan</h2>
+            </div>
+            <p className="mb-5 text-sm text-slate-500">
+              Siapkan seluruh dokumen berikut sesuai arahan dalam proses pengajuan KP ASK.
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {DOKUMEN_LIST.map((doc) => (
+                <UploadBox
+                  key={doc.key}
+                  label={doc.label}
+                  file={form.dokumen[doc.key]}
+                  onChange={(file) => setDoc(doc.key, file)}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
+            <label className="flex cursor-pointer gap-3">
+              <input
+                type="checkbox"
+                checked={form.persetujuan}
+                onChange={(e) => update('persetujuan', e.target.checked)}
+                className="mt-1 h-5 w-5 accent-red-600"
+              />
+              <span className="text-sm leading-6 text-slate-700">
+                Saya menyatakan data yang saya berikan benar dan bersedia mengikuti proses
+                pendataan, pemeriksaan kelengkapan, dan fasilitasi pengajuan KP ASK melalui DOKB.
+              </span>
+            </label>
+          </section>
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+            <button onClick={onBack} className="rounded-2xl border bg-white px-6 py-4 font-bold text-slate-700">
+              Kembali
+            </button>
+            <button
+              onClick={onReview}
+              disabled={!canReview}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-4 font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <PencilSimple size={20} color="white" weight="fill" />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-gray-800 text-sm">Cek & Perbaiki Pengajuan</p>
-              <p className="text-xs text-gray-400">Sudah mengajukan? Perbaiki data pakai NIK</p>
-            </div>
-            <ArrowRight size={16} color="#4b5563" weight="bold" />
+              Periksa Pengajuan
+              <ArrowRight size={20} weight="bold" />
+            </button>
           </div>
-        </button>
-        
-        <div className="mt-6 text-center space-y-1">
-          <p className="text-xs font-bold text-gray-500">Dikelola oleh:</p>
-          <p className="text-xs text-gray-600 font-semibold">Tim Pengawas ASK Provinsi Kalimantan Selatan</p>
-          <p className="text-xs text-gray-400">Didukung Sistem Pelaporan oleh:</p>
-          <p className="text-xs text-gray-600 font-semibold">DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu</p>
+
+          {!canReview && (
+            <div className="flex items-start gap-2 rounded-2xl bg-slate-100 p-4 text-xs leading-5 text-slate-500">
+              <WarningCircle className="mt-0.5 shrink-0" size={17} />
+              Lengkapi data, seluruh dokumen, dan persetujuan sebelum melanjutkan.
+            </div>
+          )}
         </div>
+      </main>
+    </div>
+  )
+}
+
+function ReviewPage({
+  form,
+  onBack,
+  onSubmit,
+  loading,
+}: {
+  form: FormDataType
+  onBack: () => void
+  onSubmit: () => void
+  loading: boolean
+}) {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="border-b bg-white">
+        <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4">
+          <button onClick={onBack} className="rounded-xl p-2 hover:bg-slate-100">
+            <ArrowLeft size={22} />
+          </button>
+          <div>
+            <div className="font-black text-slate-900">Periksa Pengajuan</div>
+            <div className="text-xs text-slate-500">Pastikan data sudah benar</div>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-5 py-8">
+        <section className="rounded-3xl bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-black">Ringkasan Data</h1>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {[
+              ['Nama', form.nama],
+              ['NIK', form.nik],
+              ['No. HP', form.no_hp],
+              ['Email', form.email || '-'],
+              ['Kabupaten/Kota', form.kota],
+              ['Jenis Kendaraan', form.jenis_kendaraan],
+              ['Merek / Tipe', `${form.merk} / ${form.tipe}`],
+              ['Tahun', form.tahun],
+              ['Nomor Polisi', form.nomor_polisi],
+              ['Platform', form.platform],
+              ['Status DOKB', form.anggota_dokb],
+              ['Nomor Anggota', form.nomor_anggota || '-'],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs text-slate-500">{label}</div>
+                <div className="mt-1 break-words text-sm font-bold text-slate-800">{value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-7">
+            <h2 className="font-black">Dokumen</h2>
+            <div className="mt-3 space-y-2">
+              {DOKUMEN_LIST.map((doc) => (
+                <div key={doc.key} className="flex items-center justify-between rounded-xl border p-3">
+                  <span className="text-sm text-slate-700">{doc.label}</span>
+                  <CheckCircle size={20} weight="fill" className="text-green-600" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <button onClick={onBack} className="inline-flex items-center justify-center gap-2 rounded-2xl border bg-white px-6 py-4 font-bold text-slate-700">
+              <PencilSimple size={19} />
+              Perbaiki Data
+            </button>
+            <button
+              onClick={onSubmit}
+              disabled={loading}
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-red-600 px-6 py-4 font-bold text-white disabled:opacity-50"
+            >
+              {loading ? 'Mengirim...' : 'Kirim Pengajuan'}
+              {!loading && <ArrowRight size={20} weight="bold" />}
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+function SuccessPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-5">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-xl">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-50 text-green-600">
+          <CheckCircle size={50} weight="fill" />
+        </div>
+        <h1 className="mt-6 text-2xl font-black text-slate-900">Pengajuan Berhasil Dikirim</h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Pengajuan Kartu Pengawasan Anda telah berhasil dikirim melalui sistem pendampingan
+          administrasi DOKB.
+        </p>
+        <p className="mt-3 text-xs leading-5 text-slate-400">
+          Data dan dokumen akan mengikuti proses pemeriksaan serta kewenangan instansi yang
+          berwenang.
+        </p>
+        <button
+          onClick={() => (window.location.href = '/')}
+          className="mt-7 rounded-2xl bg-red-600 px-6 py-3.5 font-bold text-white"
+        >
+          Kembali ke Halaman Utama
+        </button>
       </div>
     </div>
   )
 }
 
-// ─── Ringkasan Field kecil (dipakai di halaman Cek Ulang) ──────────────────
-function RingkasanField({ label, value }: { label: string; value: string | number | null | undefined }) {
-  return (
-    <div className="flex justify-between py-1.5 border-b border-gray-50 last:border-0">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="text-xs font-semibold text-gray-700 text-right max-w-[60%]">{value || '—'}</p>
-    </div>
-  )
-}
-
-// ─── Pengajuan Form ─────────────────────────────────────────────────────────
-function PengajuanForm({ onBack }: { onBack: () => void }) {
-  const [form, setForm] = useState({
-    nama: '',
-    nik: '',
-    tempat_lahir: '',
-    tanggal_lahir: '',
-    alamat: '',
-    lokasi: '',
-    no_hp: '',
-    email: '',
-    jenis_kendaraan: '',
-    merk_type: '',
-    no_pol: '',
-    no_rangka: '',
-    no_mesin: '',
-    warna_kendaraan: '',
-    masa_berlaku_stnk: '',
-    masa_berlaku_skpd: '',
-    platform: [] as string[],
-    lama_bergabung: '',
-    status_keanggotaan: '' as '' | 'anggota' | 'non_anggota',
-    no_kta: ''
-  })
-  const [dokumen, setDokumen] = useState<Record<DokumenKey, File | null>>({
-    ktp: null, sim: null, stnk: null, skpd: null,
-    kendaraan_depan: null, kendaraan_belakang: null, kendaraan_samping: null,
-    buku_servis: null
-  })
-  const [setuju, setSetuju] = useState(false)
+export default function Home() {
+  const [showSplash, setShowSplash] = useState(true)
+  const [page, setPage] = useState<'landing' | 'form' | 'review' | 'success'>('landing')
+  const [form, setForm] = useState<FormDataType>(initialForm)
   const [loading, setLoading] = useState(false)
-  const [sukses, setSukses] = useState(false)
-  const [error, setError] = useState('')
-  const [tahapReview, setTahapReview] = useState(false)
 
-  const togglePlatform = (p: string) => {
-    setForm(prev => ({
-      ...prev,
-      platform: prev.platform.includes(p) ? prev.platform.filter(x => x !== p) : [...prev.platform, p]
-    }))
-  }
-
-  const handleDokumen = (key: DokumenKey, file: File | null) => {
-    setDokumen(prev => ({ ...prev, [key]: file }))
-  }
-
-  const dokumenLengkap = DOKUMEN_LIST.every(d => dokumen[d.key] !== null)
-
-  const validasiForm = () => {
-    if (!form.nama || !form.nik || !form.alamat || !form.lokasi || !form.no_hp) {
-      setError('Data pribadi wajib dilengkapi: nama, NIK, alamat, kota, dan nomor HP!')
-      return false
-    }
-    if (!form.jenis_kendaraan || !form.merk_type || !form.no_pol) {
-      setError('Data kendaraan wajib dilengkapi: jenis, merk/type, dan plat nomor!')
-      return false
-    }
-    if (form.platform.length === 0) {
-      setError('Pilih minimal satu aplikator yang digunakan!')
-      return false
-    }
-    if (!dokumenLengkap) {
-      setError('Seluruh dokumen wajib diupload!')
-      return false
-    }
-    if (!setuju) {
-      setError('Anda harus menyetujui pernyataan penggunaan data terlebih dahulu!')
-      return false
-    }
-    return true
-  }
-
-  const handleTinjau = () => {
-    setError('')
-    if (!validasiForm()) return
-    setTahapReview(true)
-    window.scrollTo(0, 0)
-  }
-
-  const handleSubmit = async () => {
+  const submit = async () => {
     setLoading(true)
-    setError('')
-
     try {
-      const dokumenUrls: Record<string, string> = {}
-      for (const d of DOKUMEN_LIST) {
-        const file = dokumen[d.key]
-        if (!file) continue
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('jenis', d.key)
-        const res = await fetch('/api/upload', { method: 'POST', body: formData })
-        const result = await res.json()
-        if (result.url) dokumenUrls[d.key] = result.url
+      const uploaded: Record<string, string> = {}
+
+      for (const doc of DOKUMEN_LIST) {
+        const file = form.dokumen[doc.key]
+        if (!file) throw new Error(`Dokumen belum lengkap: ${doc.label}`)
+
+        const fd = new FormData()
+        fd.append('file', file)
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (!uploadRes.ok) throw new Error('Gagal mengunggah dokumen')
+        const uploadData = await uploadRes.json()
+        uploaded[doc.key] = uploadData.url
       }
 
-      const checklistRaw = sessionStorage.getItem('checklist_keselamatan')
-      const checklist_keselamatan = checklistRaw ? JSON.parse(checklistRaw) : null
+      const payload = {
+        nama: form.nama,
+        nik: form.nik,
+        no_hp: form.no_hp,
+        email: form.email,
+        alamat: form.alamat,
+        kota: form.kota,
+        jenis_kendaraan: form.jenis_kendaraan,
+        merk: form.merk,
+        tipe: form.tipe,
+        tahun: form.tahun,
+        nomor_polisi: form.nomor_polisi,
+        platform: form.platform,
+        anggota_dokb: form.anggota_dokb,
+        nomor_anggota: form.nomor_anggota,
+        dokumen: uploaded,
+      }
 
       const res = await fetch('/api/pengajuan-kp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          dokumen: dokumenUrls,
-          checklist_keselamatan
-        })
+        body: JSON.stringify(payload),
       })
 
-      const result = await res.json()
-      if (result.success) {
-        sessionStorage.removeItem('checklist_keselamatan')
-        setSukses(true)
-      } else {
-        setError(result.message)
-        setTahapReview(false)
-      }
-    } catch {
-      setError('Gagal mengirim pengajuan, coba lagi!')
-      setTahapReview(false)
+      if (!res.ok) throw new Error('Gagal mengirim pengajuan')
+      setPage('success')
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Terjadi kesalahan saat mengirim pengajuan.')
     } finally {
       setLoading(false)
     }
   }
 
-  if (sukses) return <SuksesPage onBack={onBack} />
+  if (showSplash) {
+    return <SplashScreen onDone={() => setShowSplash(false)} />
+  }
 
-  // ── Halaman Cek Ulang ──
-  if (tahapReview) {
+  if (page === 'landing') return <LandingPage onStart={() => setPage('form')} />
+  if (page === 'form') {
     return (
-      <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
-        <div className="relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #f97316 100%)', paddingBottom: 32 }}
-        >
-          <div className="relative p-6 pt-8 max-w-md mx-auto">
-            <button onClick={() => setTahapReview(false)} className="flex items-center gap-2 text-white/80 mb-4 text-sm font-semibold">
-              <ArrowLeft size={16} weight="bold" /> Kembali Edit
-            </button>
-            <h1 className="text-lg font-extrabold text-white" style={{ fontFamily: 'var(--font-plus-jakarta)' }}>
-              Cek Ulang Pengajuan
-            </h1>
-            <p className="text-red-100 text-xs mt-1">Periksa kembali sebelum mengirim</p>
-          </div>
-        </div>
-
-        <div className="max-w-md mx-auto p-4 -mt-4 relative z-10 space-y-4 pb-6">
-
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold text-gray-700">Data Pribadi</p>
-              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
-                <PencilSimple size={12} weight="bold" /> Ubah
-              </button>
-            </div>
-            <RingkasanField label="Nama" value={form.nama} />
-            <RingkasanField label="NIK" value={form.nik} />
-            <RingkasanField label="Tempat/Tgl Lahir" value={form.tempat_lahir ? `${form.tempat_lahir}, ${form.tanggal_lahir || '—'}` : null} />
-            <RingkasanField label="Alamat" value={form.alamat} />
-            <RingkasanField label="Kota/Kabupaten" value={form.lokasi} />
-            <RingkasanField label="No. HP" value={form.no_hp} />
-            <RingkasanField label="Email" value={form.email} />
-          </div>
-
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold text-gray-700">Data Kendaraan</p>
-              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
-                <PencilSimple size={12} weight="bold" /> Ubah
-              </button>
-            </div>
-            <RingkasanField label="Jenis" value={form.jenis_kendaraan} />
-            <RingkasanField label="Merk/Type" value={form.merk_type} />
-            <RingkasanField label="Warna" value={form.warna_kendaraan} />
-            <RingkasanField label="No. Polisi" value={form.no_pol} />
-            <RingkasanField label="No. Rangka" value={form.no_rangka} />
-            <RingkasanField label="No. Mesin" value={form.no_mesin} />
-            <RingkasanField label="Masa Berlaku STNK" value={form.masa_berlaku_stnk} />
-            <RingkasanField label="Masa Berlaku SKPD" value={form.masa_berlaku_skpd} />
-          </div>
-
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold text-gray-700">Data Platform</p>
-              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
-                <PencilSimple size={12} weight="bold" /> Ubah
-              </button>
-            </div>
-            <RingkasanField label="Aplikator" value={form.platform.join(', ')} />
-            <RingkasanField label="Lama Bergabung" value={form.lama_bergabung} />
-            <RingkasanField label="Status Keanggotaan" value={form.status_keanggotaan === 'anggota' ? 'Anggota DOKB' : 'Non-Anggota'} />
-            {form.status_keanggotaan === 'anggota' && <RingkasanField label="No. KTA" value={form.no_kta} />}
-          </div>
-
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-gray-700">Dokumen</p>
-              <button onClick={() => setTahapReview(false)} className="flex items-center gap-1 text-xs font-bold text-red-600">
-                <PencilSimple size={12} weight="bold" /> Ubah
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {DOKUMEN_LIST.map(d => {
-                const file = dokumen[d.key]
-                return (
-                  <div key={d.key} className="rounded-xl overflow-hidden border border-gray-100">
-                    {file ? (
-                      <img src={URL.createObjectURL(file)} alt={d.label} className="w-full h-20 object-cover" />
-                    ) : (
-                      <div className="w-full h-20 bg-gray-50 flex items-center justify-center">
-                        <Warning size={18} color="#dc2626" />
-                      </div>
-                    )}
-                    <p className="text-[9px] text-gray-400 text-center py-1 px-1 truncate">{d.label}</p>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-2xl p-4 flex items-center gap-3"
-              style={{ background: 'linear-gradient(135deg, #fef2f2, #fff7ed)' }}
-            >
-              <Warning size={20} color="#dc2626" weight="fill" />
-              <p className="text-red-600 text-sm font-semibold">{error}</p>
-            </div>
-          )}
-
-          <button onClick={handleSubmit} disabled={loading}
-            className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2 disabled:opacity-50"
-            style={{
-              background: loading ? '#9ca3af' : 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
-              boxShadow: loading ? 'none' : '0 6px 20px rgba(220,38,38,0.5)'
-            }}
-          >
-            {loading ? '⏳ Mengirim...' : <><PaperPlaneTilt size={20} weight="fill" /> KIRIM SEKARANG</>}
-          </button>
-        </div>
-      </div>
+      <FormPage
+        form={form}
+        setForm={setForm}
+        onBack={() => setPage('landing')}
+        onReview={() => setPage('review')}
+      />
+    )
+  }
+  if (page === 'review') {
+    return (
+      <ReviewPage
+        form={form}
+        onBack={() => setPage('form')}
+        onSubmit={submit}
+        loading={loading}
+      />
     )
   }
 
-  return (
-    <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
-      <div className="relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #f97316 100%)', paddingBottom: 32 }}
-      >
-        <div className="relative p-6 pt-8 max-w-md mx-auto">
-          <button onClick={onBack} className="flex items-center gap-2 text-white/80 mb-4 text-sm font-semibold">
-            <ArrowLeft size={16} weight="bold" /> Kembali
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.15)' }}
-            >
-              <IdentificationCard size={20} color="white" weight="fill" />
-            </div>
-            <div>
-              <h1 className="text-lg font-extrabold text-white" style={{ fontFamily: 'var(--font-plus-jakarta)' }}>
-                Pengajuan Kartu Pengawasan
-              </h1>
-              <p className="text-red-100 text-xs">Lengkapi seluruh data dan dokumen</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-md mx-auto p-4 -mt-4 relative z-10 space-y-4">
-        {/* ── Data Pribadi ── */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <User size={16} weight="fill" color="#dc2626" />
-            <p className="text-sm font-bold text-gray-700">Data Pribadi</p>
-          </div>
-          <div className="space-y-3">
-            <input type="text" placeholder="Nama Lengkap *"
-              value={form.nama} onChange={e => setForm({ ...form, nama: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <input type="text" placeholder="NIK (sesuai KTP) *"
-              value={form.nik} onChange={e => setForm({ ...form, nik: e.target.value })}
-              maxLength={16}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="Tempat Lahir"
-                value={form.tempat_lahir} onChange={e => setForm({ ...form, tempat_lahir: e.target.value })}
-                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
-              <input type="date"
-                value={form.tanggal_lahir} onChange={e => setForm({ ...form, tanggal_lahir: e.target.value })}
-                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
-            </div>
-            <textarea placeholder="Alamat Domisili Lengkap *"
-              value={form.alamat} onChange={e => setForm({ ...form, alamat: e.target.value })}
-              rows={2}
-              className="w-full rounded-xl p-3 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <div className="relative">
-              <MapPin size={16} weight="fill" color="#dc2626" className="absolute left-3 top-3.5" />
-              <select value={form.lokasi} onChange={e => setForm({ ...form, lokasi: e.target.value })}
-                className="w-full rounded-xl py-3 pl-10 pr-4 text-sm font-semibold focus:outline-none appearance-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              >
-                <option value="">Pilih Kota/Kabupaten *</option>
-                {KOTA.map(k => <option key={k} value={k}>{k}</option>)}
-              </select>
-            </div>
-            <div className="relative">
-              <Phone size={16} weight="fill" color="#dc2626" className="absolute left-3 top-3.5" />
-              <input type="tel" placeholder="Nomor HP *"
-                value={form.no_hp} onChange={e => setForm({ ...form, no_hp: e.target.value })}
-                className="w-full rounded-xl py-3 pl-10 pr-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
-            </div>
-            <input type="email" placeholder="Email (opsional)"
-              value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-          </div>
-        </div>
-        {/* ── Data Kendaraan ── */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Car size={16} weight="fill" color="#dc2626" />
-            <p className="text-sm font-bold text-gray-700">Data Kendaraan</p>
-          </div>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {JENIS_KENDARAAN.map(j => (
-                <button key={j} onClick={() => setForm({ ...form, jenis_kendaraan: j })}
-                  className="py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-                  style={form.jenis_kendaraan === j ? {
-                    background: 'linear-gradient(135deg, #dc2626, #f97316)',
-                    color: 'white', boxShadow: '0 4px 12px rgba(220,38,38,0.4)'
-                  } : { background: '#f8f8fa', color: '#374151' }}
-                >
-                  {j === 'Mobil' ? <Car size={16} weight="fill" /> : <Motorcycle size={16} weight="fill" />}
-                  {j}
-                </button>
-              ))}
-            </div>
-            <input type="text" placeholder="Merk / Type Kendaraan *"
-              value={form.merk_type} onChange={e => setForm({ ...form, merk_type: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <input type="text" placeholder="Warna Kendaraan"
-              value={form.warna_kendaraan} onChange={e => setForm({ ...form, warna_kendaraan: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <input type="text" placeholder="No. Polisi (Plat Nomor) *"
-              value={form.no_pol} onChange={e => setForm({ ...form, no_pol: e.target.value.toUpperCase() })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none uppercase"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="No. Rangka"
-                value={form.no_rangka} onChange={e => setForm({ ...form, no_rangka: e.target.value })}
-                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
-              <input type="text" placeholder="No. Mesin"
-                value={form.no_mesin} onChange={e => setForm({ ...form, no_mesin: e.target.value })}
-                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Masa Berlaku STNK</label>
-                <input type="date"
-                  value={form.masa_berlaku_stnk} onChange={e => setForm({ ...form, masa_berlaku_stnk: e.target.value })}
-                  className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Masa Berlaku SKPD</label>
-                <input type="date"
-                  value={form.masa_berlaku_skpd} onChange={e => setForm({ ...form, masa_berlaku_skpd: e.target.value })}
-                  className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* ── Data Platform ── */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-3">
-            <Buildings size={16} weight="fill" color="#dc2626" />
-            <p className="text-sm font-bold text-gray-700">Data Platform</p>
-          </div>
-          <p className="text-xs text-gray-400 mb-2">Aplikator yang digunakan * (bisa pilih lebih dari satu)</p>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            {PLATFORM.map(p => (
-              <button key={p} onClick={() => togglePlatform(p)}
-                className="py-3 px-4 rounded-xl text-sm font-bold transition-all"
-                style={form.platform.includes(p) ? {
-                  background: 'linear-gradient(135deg, #dc2626, #f97316)',
-                  color: 'white', boxShadow: '0 4px 12px rgba(220,38,38,0.4)'
-                } : { background: '#f8f8fa', color: '#374151' }}
-              >{p}</button>
-            ))}
-          </div>
-          <input type="text" placeholder="Lama bergabung sebagai driver ASK (mis. 2 tahun)"
-            value={form.lama_bergabung} onChange={e => setForm({ ...form, lama_bergabung: e.target.value })}
-            className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none mb-3"
-            style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-          />
-          <p className="text-xs text-gray-400 mb-2">Status Keanggotaan</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button onClick={() => setForm({ ...form, status_keanggotaan: 'anggota' })}
-              className="py-3 px-4 rounded-xl text-sm font-bold transition-all"
-              style={form.status_keanggotaan === 'anggota' ? {
-                background: 'linear-gradient(135deg, #dc2626, #f97316)', color: 'white'
-              } : { background: '#f8f8fa', color: '#374151' }}
-            >Anggota DOKB</button>
-            <button onClick={() => setForm({ ...form, status_keanggotaan: 'non_anggota' })}
-              className="py-3 px-4 rounded-xl text-sm font-bold transition-all"
-              style={form.status_keanggotaan === 'non_anggota' ? {
-                background: 'linear-gradient(135deg, #dc2626, #f97316)', color: 'white'
-              } : { background: '#f8f8fa', color: '#374151' }}
-            >Non-Anggota</button>
-          </div>
-          {form.status_keanggotaan === 'anggota' && (
-            <input type="text" placeholder="No. KTA (jika ada)"
-              value={form.no_kta} onChange={e => setForm({ ...form, no_kta: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none mt-3"
-              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
-          )}
-        </div>
-        {/* ── Upload Dokumen ── */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <div className="flex items-center gap-2 mb-1">
-            <Images size={16} weight="fill" color="#dc2626" />
-            <p className="text-sm font-bold text-gray-700">Dokumen Wajib</p>
-          </div>
-          <p className="text-xs text-gray-400 mb-3">Seluruh dokumen di bawah ini wajib diupload</p>
-          <div className="space-y-3">
-            {DOKUMEN_LIST.map(d => (
-              <div key={d.key}>
-                <label className="flex items-center justify-between border-2 border-dashed rounded-2xl p-3 cursor-pointer"
-                  style={{
-                    borderColor: dokumen[d.key] ? '#86efac' : '#fca5a5',
-                    background: dokumen[d.key] ? '#f0fdf4' : '#fff5f5'
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    {dokumen[d.key]
-                      ? <CheckCircle size={22} color="#22c55e" weight="fill" />
-                      : (d.key === 'buku_servis' ? <BookOpen size={22} color="#dc2626" weight="duotone" /> : <Images size={22} color="#dc2626" weight="duotone" />)
-                    }
-                    <div>
-                      <p className="text-xs font-bold text-gray-700">{d.label}</p>
-                      <p className="text-[10px] text-gray-400">
-                        {dokumen[d.key] ? dokumen[d.key]!.name : d.hint}
-                      </p>
-                    </div>
-                  </div>
-                  <input type="file" accept="image/*"
-                    onChange={e => handleDokumen(d.key, e.target.files?.[0] || null)}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* ── Pernyataan ── */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input type="checkbox" checked={setuju} onChange={e => setSetuju(e.target.checked)}
-              className="mt-0.5 w-4 h-4 flex-shrink-0"
-            />
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Saya menyetujui penggunaan data dan dokumen yang saya sampaikan melalui formulir ini untuk
-              keperluan pendataan, verifikasi, dan pengurusan Kartu Pengawasan Angkutan Sewa Khusus (ASK)
-              melalui fasilitasi DOKB sesuai ketentuan yang berlaku.
-            </p>
-          </label>
-        </div>
-        {error && (
-          <div className="rounded-2xl p-4 flex items-center gap-3"
-            style={{ background: 'linear-gradient(135deg, #fef2f2, #fff7ed)' }}
-          >
-            <Warning size={20} color="#dc2626" weight="fill" />
-            <p className="text-red-600 text-sm font-semibold">{error}</p>
-          </div>
-        )}
-        <button onClick={handleTinjau}
-          className="w-full py-4 rounded-2xl font-extrabold text-base text-white flex items-center justify-center gap-2"
-          style={{
-            background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #f97316 100%)',
-            boxShadow: '0 6px 20px rgba(220,38,38,0.5)'
-          }}
-        >
-          Tinjau Pengajuan <ArrowRight size={20} weight="bold" />
-        </button>
-        <p className="text-center text-[10px] text-gray-300 pb-4">
-          DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu
-        </p>
-      </div>
-    </div>
-  )
-}
-// ─── Sukses Page ────────────────────────────────────────────────────────────
-function SuksesPage({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' }}
-    >
-      <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center"
-        style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}
-      >
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}
-        >
-          <CheckCircle size={40} color="white" weight="fill" />
-        </div>
-        <h2 className="text-2xl font-extrabold text-gray-800 mb-2">Pengajuan Terkirim!</h2>
-        <p className="text-gray-500 text-sm mb-2 leading-relaxed">
-          Terima kasih! Pengajuan Kartu Pengawasan Anda telah diterima dan akan diverifikasi oleh
-          <strong> Tim Pengawas ASK Provinsi Kalimantan Selatan</strong>.
-        </p>
-        <p className="text-gray-400 text-xs mb-8">
-          Dokumen dan Surat Perjanjian Kerjasama akan diproses setelah data Anda diverifikasi.
-        </p>
-        <button onClick={onBack}
-          className="w-full text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #16a34a, #22c55e)' }}
-        >
-          <ArrowLeft size={18} weight="bold" />
-          Kembali ke Beranda
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-export default function Home() {
-  const [showSplash, setShowSplash] = useState(true)
-  const [view, setView] = useState<'landing' | 'form'>('landing')
-
-  useEffect(() => {
-    if (sessionStorage.getItem('buka_form_langsung') === '1') {
-      sessionStorage.removeItem('buka_form_langsung')
-      setShowSplash(false)
-      setView('form')
-    }
-  }, [])
-
-  if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
-  if (view === 'form') return <PengajuanForm onBack={() => setView('landing')} />
-  return <LandingPage />
+  return <SuccessPage />
 }
