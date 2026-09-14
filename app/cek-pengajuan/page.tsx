@@ -75,8 +75,9 @@ export default function CekPengajuan() {
     try {
       const dokumenUrls: Record<string, string> = {}
       for (const d of DOKUMEN_LIST) {
-        const file = dokumenBaru[d.key]
-        if (!file) continue
+        const fileAsli = dokumenBaru[d.key]
+        if (!fileAsli) continue
+        const file = await kompresGambar(fileAsli)
         const formData = new FormData()
         formData.append('file', file)
         formData.append('jenis', d.key)
