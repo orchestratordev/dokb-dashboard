@@ -269,7 +269,7 @@ export default function CekPengajuan() {
                       )}
                     </div>
                     <p className="text-[9px] text-gray-400 text-center mt-1 truncate">{d.label}</p>
-                    <input type="file" accept="image/*" className="hidden"
+                    <input type="file" accept="image/*" capture="environment" className="hidden"
                       onChange={e => setDokumenBaru(prev => ({ ...prev, [d.key]: e.target.files?.[0] || null }))}
                     />
                   </label>
