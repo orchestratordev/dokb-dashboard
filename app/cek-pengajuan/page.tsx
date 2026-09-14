@@ -7,6 +7,36 @@ import {
   User, Car, Buildings, Images, PaperPlaneTilt
 } from '@phosphor-icons/react'
 
+async function kompresGambar(file: File, maxWidth = 1600, quality = 0.72): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+    }
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }))
+          } else {
+            resolve(file)
+          }
+        },
+        'image/jpeg',
+        quality
+      )
+    }
+    reader.readAsDataURL(file)
+  })
+                             }
+
 const PLATFORM = ['Grab', 'Gojek', 'Maxim', 'InDrive']
 const KOTA = [
   'Banjarmasin', 'Banjarbaru', 'Martapura', 'Pelaihari',
