@@ -21,6 +21,35 @@ import {
   PencilSimple
 } from '@phosphor-icons/react'
 
+async function kompresGambar(file: File, maxWidth = 1600, quality = 0.72): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+    }
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }))
+          } else {
+            resolve(file)
+          }
+        },
+        'image/jpeg',
+        quality
+      )
+    }
+    reader.readAsDataURL(file)
+  })
+}
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLATFORM = ['Grab', 'Gojek', 'Maxim', 'InDrive']
 const KOTA = [
@@ -275,8 +304,9 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
     try {
       const dokumenUrls: Record<string, string> = {}
       for (const d of DOKUMEN_LIST) {
-        const file = dokumen[d.key]
-        if (!file) continue
+        const fileAsli = dokumen[d.key]
+        if (!fileAsli) continue
+        const file = await kompresGambar(fileAsli)
         const formData = new FormData()
         formData.append('file', file)
         formData.append('jenis', d.key)
