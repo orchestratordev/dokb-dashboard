@@ -664,7 +664,7 @@ return (
                       </p>
                     </div>
                   </div>
-                  <input type="file" accept="image/*"
+                  <input type="file" accept="image/*" capture="environment"
                     onChange={e => handleDokumen(d.key, e.target.files?.[0] || null)}
                     className="hidden"
                   />
