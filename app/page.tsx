@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   IdentificationCard,
   Car,
-  Motorcycle,
   MapPin,
   Phone,
   Images,
@@ -50,13 +49,22 @@ async function kompresGambar(file: File, maxWidth = 1600, quality = 0.72): Promi
     reader.readAsDataURL(file)
   })
 }
-// ─── Constants ────────────────────────────────────────────────────────────────
+
 const PLATFORM = ['Grab', 'Gojek', 'Maxim', 'InDrive']
 const KOTA = [
   'Banjarmasin', 'Banjarbaru', 'Martapura', 'Pelaihari',
   'Kandangan', 'Barabai', 'Tanjung', 'Kotabaru', 'Batulicin', 'Lainnya'
 ]
-const JENIS_KENDARAAN = ['Mobil', 'Motor']
+
+const MERK_KENDARAAN = [
+  'Aion', 'Aletra', 'Audi', 'BMW', 'BYD', 'Chery', 'Chevrolet',
+  'Citroen', 'Daihatsu', 'Datsun', 'DFSK', 'Ford', 'Geely', 'GWM',
+  'Haval', 'Honda', 'Hyundai', 'Isuzu', 'Jaecoo', 'Jeep', 'Jetour',
+  'Kia', 'Lexus', 'Maxus', 'Mazda', 'Mercedes Benz', 'MG',
+  'Mini Cooper', 'Mitsubishi', 'Neta', 'Nissan', 'Peugeot',
+  'Polytron', 'Proton', 'Renault', 'Subaru', 'Suzuki', 'Tata',
+  'Tesla', 'Toyota', 'VinFast', 'Volkswagen', 'Volvo', 'Wuling', 'Xpeng'
+]
 
 type DokumenKey = 'ktp' | 'sim' | 'stnk' | 'skpd' | 'kendaraan_depan' | 'kendaraan_belakang' | 'kendaraan_samping' | 'buku_servis'
 
@@ -71,12 +79,87 @@ const DOKUMEN_LIST: { key: DokumenKey; label: string; hint: string }[] = [
   { key: 'buku_servis', label: 'Foto Cover Buku Servis', hint: 'Halaman depan buku servis unit' },
 ]
 
-// ─── Splash Screen ────────────────────────────────────────────────────────────
+function SearchIcon({ color = '#9ca3af' }: { color?: string }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function ModalCariMerk({
+  onPilih,
+  onTutup
+}: {
+  onPilih: (merk: string) => void
+  onTutup: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const filtered = MERK_KENDARAAN.filter(m =>
+    m.toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="bg-white rounded-t-3xl w-full max-h-[85vh] flex flex-col"
+        style={{ animation: 'slideUp 0.3s ease-out' }}
+      >
+        <div className="p-4 border-b border-gray-100 flex-shrink-0">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-extrabold text-gray-800 text-lg">Cari Merk</h2>
+            <button onClick={onTutup}
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: '#f3f4f6' }}
+            >
+              <span className="text-gray-600 font-bold text-lg">×</span>
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari merk kendaraan..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              autoFocus
+              className="w-full rounded-xl py-3 pl-11 pr-4 text-sm font-medium focus:outline-none"
+              style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+            />
+            <div className="absolute left-4 top-3.5">
+              <SearchIcon />
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto flex-1">
+          {filtered.length === 0 ? (
+            <div className="p-8 text-center text-gray-400 text-sm">
+              Merk tidak ditemukan. Ketik manual di kolom Merk.
+            </div>
+          ) : (
+            filtered.map(m => (
+              <button
+                key={m}
+                onClick={() => onPilih(m)}
+                className="w-full text-left px-5 py-4 text-sm font-semibold text-gray-800 border-b border-gray-50 active:bg-gray-50 transition-colors"
+              >
+                {m}
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+      <style>{`@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
+    </div>
+  )
+}
+
 function SplashScreen({ onDone }: { onDone: () => void }) {
   const [progress, setProgress] = useState(0)
   const [fadeOut, setFadeOut] = useState(false)
 
-  useState(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
@@ -89,7 +172,7 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
       })
     }, 40)
     return () => clearInterval(interval)
-  })
+  }, [onDone])
 
   return (
     <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
@@ -115,7 +198,6 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
   )
 }
 
-// ─── Landing Page ─────────────────────────────────────────────────────────────
 function LandingPage() {
   const router = useRouter()
 
@@ -208,7 +290,6 @@ function LandingPage() {
   )
 }
 
-// ─── Ringkasan Field kecil (dipakai di halaman Cek Ulang) ──────────────────
 function RingkasanField({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="flex justify-between py-1.5 border-b border-gray-50 last:border-0">
@@ -218,7 +299,6 @@ function RingkasanField({ label, value }: { label: string; value: string | numbe
   )
 }
 
-// ─── Pengajuan Form ─────────────────────────────────────────────────────────
 function PengajuanForm({ onBack }: { onBack: () => void }) {
   const [form, setForm] = useState({
     nama: '',
@@ -229,8 +309,8 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
     lokasi: '',
     no_hp: '',
     email: '',
-    jenis_kendaraan: '',
-    merk_type: '',
+    merk: '',
+    type_varian: '',
     no_pol: '',
     no_rangka: '',
     no_mesin: '',
@@ -252,6 +332,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
   const [sukses, setSukses] = useState(false)
   const [error, setError] = useState('')
   const [tahapReview, setTahapReview] = useState(false)
+  const [showModalMerk, setShowModalMerk] = useState(false)
 
   const togglePlatform = (p: string) => {
     setForm(prev => ({
@@ -271,8 +352,8 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
       setError('Data pribadi wajib dilengkapi: nama, NIK, alamat, kota, dan nomor HP!')
       return false
     }
-    if (!form.jenis_kendaraan || !form.merk_type || !form.no_pol) {
-      setError('Data kendaraan wajib dilengkapi: jenis, merk/type, dan plat nomor!')
+    if (!form.merk || !form.type_varian || !form.no_pol) {
+      setError('Data kendaraan wajib dilengkapi: merk, type, dan plat nomor!')
       return false
     }
     if (form.platform.length === 0) {
@@ -365,7 +446,6 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="max-w-md mx-auto p-4 -mt-4 relative z-10 space-y-4 pb-6">
-
           <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-bold text-gray-700">Data Pribadi</p>
@@ -389,8 +469,9 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
                 <PencilSimple size={12} weight="bold" /> Ubah
               </button>
             </div>
-            <RingkasanField label="Jenis" value={form.jenis_kendaraan} />
-            <RingkasanField label="Merk/Type" value={form.merk_type} />
+            <RingkasanField label="Jenis" value="Mobil (Roda 4)" />
+            <RingkasanField label="Merk" value={form.merk} />
+            <RingkasanField label="Type/Varian" value={form.type_varian} />
             <RingkasanField label="Warna" value={form.warna_kendaraan} />
             <RingkasanField label="No. Polisi" value={form.no_pol} />
             <RingkasanField label="No. Rangka" value={form.no_rangka} />
@@ -459,9 +540,9 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
         </div>
       </div>
     )
-    }
+  }
 
-return (
+  return (
     <div className="min-h-screen" style={{ background: '#f8f8fa' }}>
       <div className="relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #f97316 100%)', paddingBottom: 32 }}
@@ -557,25 +638,42 @@ return (
             <p className="text-sm font-bold text-gray-700">Data Kendaraan</p>
           </div>
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {JENIS_KENDARAAN.map(j => (
-                <button key={j} onClick={() => setForm({ ...form, jenis_kendaraan: j })}
-                  className="py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-                  style={form.jenis_kendaraan === j ? {
-                    background: 'linear-gradient(135deg, #dc2626, #f97316)',
-                    color: 'white', boxShadow: '0 4px 12px rgba(220,38,38,0.4)'
-                  } : { background: '#f8f8fa', color: '#374151' }}
-                >
-                  {j === 'Mobil' ? <Car size={16} weight="fill" /> : <Motorcycle size={16} weight="fill" />}
-                  {j}
-                </button>
-              ))}
-            </div>
-            <input type="text" placeholder="Merk / Type Kendaraan *"
-              value={form.merk_type} onChange={e => setForm({ ...form, merk_type: e.target.value })}
-              className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
+            <div className="flex items-center gap-3 p-3 rounded-xl"
               style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-            />
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #dc2626, #f97316)' }}
+              >
+                <Car size={20} color="white" weight="fill" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500">Jenis Layanan</p>
+                <p className="text-sm font-bold text-gray-800">Mobil (Roda 4)</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">Merk Kendaraan *</label>
+              <button type="button" onClick={() => setShowModalMerk(true)}
+                className="w-full rounded-xl py-3 px-4 text-sm font-medium text-left flex items-center justify-between"
+                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+              >
+                <span style={{ color: form.merk ? '#1f2937' : '#9ca3af' }}>
+                  {form.merk || 'Pilih Merk Kendaraan'}
+                </span>
+                <SearchIcon color="#9ca3af" />
+              </button>
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-400 mb-1 block">Type / Varian *</label>
+              <input type="text" placeholder="Contoh: Avanza G 2019"
+                value={form.type_varian} onChange={e => setForm({ ...form, type_varian: e.target.value })}
+                className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
+                style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+              />
+            </div>
+
             <input type="text" placeholder="Warna Kendaraan"
               value={form.warna_kendaraan} onChange={e => setForm({ ...form, warna_kendaraan: e.target.value })}
               className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
@@ -612,7 +710,7 @@ return (
                 <input type="date"
                   value={form.masa_berlaku_skpd} onChange={e => setForm({ ...form, masa_berlaku_skpd: e.target.value })}
                   className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                  style={ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
                 />
               </div>
             </div>
@@ -694,7 +792,7 @@ return (
                       </p>
                     </div>
                   </div>
-                  <input type="file" accept="image/*" capture="environment"
+                  <input type="file" accept="image/*"
                     onChange={e => handleDokumen(d.key, e.target.files?.[0] || null)}
                     className="hidden"
                   />
@@ -741,11 +839,20 @@ return (
           DOKB — Perkumpulan Driver Online Kalimantan Selatan Bersatu
         </p>
       </div>
+
+      {showModalMerk && (
+        <ModalCariMerk
+          onPilih={(merk) => {
+            setForm({ ...form, merk })
+            setShowModalMerk(false)
+          }}
+          onTutup={() => setShowModalMerk(false)}
+        />
+      )}
     </div>
   )
 }
 
-// ─── Sukses Page ────────────────────────────────────────────────────────────
 function SuksesPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4"
@@ -779,7 +886,6 @@ function SuksesPage({ onBack }: { onBack: () => void }) {
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Home() {
   const [showSplash, setShowSplash] = useState(true)
   const [view, setView] = useState<'landing' | 'form'>('landing')
@@ -795,5 +901,4 @@ export default function Home() {
   if (showSplash) return <SplashScreen onDone={() => setShowSplash(false)} />
   if (view === 'form') return <PengajuanForm onBack={() => setView('landing')} />
   return <LandingPage />
-                      }
-                          
+}
