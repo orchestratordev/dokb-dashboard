@@ -710,7 +710,7 @@ function PengajuanForm({ onBack }: { onBack: () => void }) {
                 <input type="date"
                   value={form.masa_berlaku_skpd} onChange={e => setForm({ ...form, masa_berlaku_skpd: e.target.value })}
                   className="w-full rounded-xl py-3 px-4 text-sm font-medium focus:outline-none"
-                  style={ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                  style={{ background: '#f8f8fa', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
                 />
               </div>
             </div>
