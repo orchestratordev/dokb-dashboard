@@ -31,22 +31,33 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const {
       nama, tempat_lahir, tanggal_lahir, alamat, lokasi, no_hp, email,
-      jenis_kendaraan, merk_type, no_pol, no_rangka, no_mesin,
+      merk, type_varian, no_pol, no_rangka, no_mesin,
       warna_kendaraan, masa_berlaku_stnk, masa_berlaku_skpd,
       platform, lama_bergabung, status_keanggotaan, no_kta,
       dokumen
     } = body
 
     const updatePayload: Record<string, any> = {
-      nama, tempat_lahir: tempat_lahir || null, tanggal_lahir: tanggal_lahir || null,
-      alamat, lokasi, no_hp, email: email || null,
-      jenis_kendaraan, merk_type, no_pol,
-      no_rangka: no_rangka || null, no_mesin: no_mesin || null,
+      nama,
+      tempat_lahir: tempat_lahir || null,
+      tanggal_lahir: tanggal_lahir || null,
+      alamat,
+      lokasi,
+      no_hp,
+      email: email || null,
+      jenis_kendaraan: 'Mobil',
+      merk,
+      type_varian,
+      no_pol,
+      no_rangka: no_rangka || null,
+      no_mesin: no_mesin || null,
       warna_kendaraan: warna_kendaraan || null,
       masa_berlaku_stnk: masa_berlaku_stnk || null,
       masa_berlaku_skpd: masa_berlaku_skpd || null,
-      platform, lama_bergabung: lama_bergabung || null,
-      status_keanggotaan: status_keanggotaan || null, no_kta: no_kta || null
+      platform,
+      lama_bergabung: lama_bergabung || null,
+      status_keanggotaan: status_keanggotaan || null,
+      no_kta: no_kta || null
     }
 
     // Dokumen hanya diupdate kalau ada file baru yang diupload (URL baru)
@@ -76,4 +87,4 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     console.error('Update pengajuan error:', err)
     return NextResponse.json({ success: false, message: 'Terjadi kesalahan pada server.' }, { status: 500 })
   }
-      }
+}
