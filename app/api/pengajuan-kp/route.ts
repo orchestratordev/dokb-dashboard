@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     const {
       nama, nik, tempat_lahir, tanggal_lahir, alamat, lokasi, no_hp, email,
-      jenis_kendaraan, merk_type, no_pol, no_rangka, no_mesin,
+      merk, type_varian, no_pol, no_rangka, no_mesin,
       warna_kendaraan, masa_berlaku_stnk, masa_berlaku_skpd,
       platform, lama_bergabung, status_keanggotaan, no_kta,
       dokumen, checklist_keselamatan
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    if (!jenis_kendaraan || !merk_type || !no_pol) {
+    if (!merk || !type_varian || !no_pol) {
       return NextResponse.json(
-        { success: false, message: 'Data kendaraan wajib dilengkapi.' },
+        { success: false, message: 'Data kendaraan wajib dilengkapi (merk, type, plat nomor).' },
         { status: 400 }
       )
     }
@@ -78,8 +78,9 @@ export async function POST(req: NextRequest) {
         lokasi,
         no_hp,
         email: email || null,
-        jenis_kendaraan,
-        merk_type,
+        jenis_kendaraan: 'Mobil',
+        merk,
+        type_varian,
         no_pol,
         no_rangka: no_rangka || null,
         no_mesin: no_mesin || null,
